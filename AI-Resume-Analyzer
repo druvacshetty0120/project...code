@@ -1,0 +1,46 @@
+from flask import Flask, render_template, request, jsonify 
+app = Flask(__name__)
+SKILLS = ["python", "java", "javascript", "html", "css", 
+"sql", "machine learning", "data analysis",       
+"communication", "teamwork", "c++"] 
+@app.route("/") 
+def home():  
+return render_template("index.html")
+@app.route("/analyze", methods=["POST"])
+def analyze_resume():  
+data = request.get_json()  
+resume = data.get("resume", "").lower()   
+found_skills = [skill.title() for skill in SKILLS if skill in resume]   
+score = 0    if len(resume) > 100:     
+score += 20    
+if len(found_skills) >= 3:  
+score += 30  
+elif len(found_skills) > 0:   
+score += 15    
+sections = ["education", "experience", "skills", "projects"]  
+found_sections = []  
+
+for section in sections:    
+if section in resume:       
+found_sections.append(section.title())       
+score += 10   
+score = min(score, 100)   
+suggestions = []  
+if "education" not in resume:  
+suggestions.append("Add an Education section.")  
+if "skills" not in resume:     
+suggestions.append("Add a Skills section.")   
+if "projects" not in resume:      
+suggestions.append("Add your academic or personal projects.")   
+if len(found_skills) < 3:   
+suggestions.append("Add more relevant technical skills.")   
+if not suggestions:      
+suggestions.append("Great job! Your resume contains important sections.")  
+return jsonify({       
+"score": score,     
+"skills": found_skills,   
+"sections": found_sections,  
+"suggestions": suggestions 
+})
+if __name__ == "__main__":  
+app.run(debug=True)
